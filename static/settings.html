@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>IOSControl Settings</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family:
+        -apple-system, BlinkMacSystemFont, "SF Pro", "Inter", sans-serif;
+      background: #0a0a14;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 4px 0;
+    }
+
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-icon i {
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .header .ver {
+      font-size: 11px;
+      color: #475569;
+      margin-left: auto;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(22, 22, 40, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(12px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .card-header i {
+      width: 16px;
+      height: 16px;
+      color: #64748b;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #64748b;
+    }
+
+    /* License Badge */
+    .license-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .license-row:last-child {
+      border: none;
+    }
+
+    .license-row .label {
+      color: #94a3b8;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .license-row .label i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .license-row .value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-free {
+      background: rgba(251, 191, 36, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    .badge-premium {
+      background: rgba(52, 211, 153, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+
+
+    /* Buttons */
+    .btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+    }
+
+    /* Pricing Cards - removed */
+    .pricing-grid,
+    .plan-card {
+      padding: 14px 16px;
+      background: rgba(10, 10, 20, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .plan-card:hover,
+    .plan-card.selected {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(99, 102, 241, 0.06);
+    }
+
+    .plan-card.selected::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      bottom: -1px;
+      left: -1px;
+      border-radius: 14px;
+      background: linear-gradient(135deg,
+          rgba(99, 102, 241, 0.15),
+          transparent);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .plan-card .plan-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .plan-card .plan-icon i {
+      width: 20px;
+      height: 20px;
+    }
+
+    .plan-card .plan-info {
+      flex: 1;
+      z-index: 1;
+    }
+
+    .plan-card .plan-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .plan-card .plan-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .plan-card .plan-price {
+      text-align: right;
+      z-index: 1;
+    }
+
+    .plan-card .plan-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .plan-card .plan-usd {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .plan-card .plan-per {
+      font-size: 10px;
+      color: #475569;
+    }
+
+    .plan-card.popular .plan-icon {
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    .plan-card.popular .plan-icon i {
+      color: #818cf8;
+    }
+
+    .plan-card:not(.popular) .plan-icon {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .plan-card:not(.popular) .plan-icon i {
+      color: #64748b;
+    }
+
+
+
+    /* Status */
+    .status-msg {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      display: none;
+    }
+
+    .status-msg.success {
+      display: block;
+      background: rgba(52, 211, 153, 0.08);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .status-msg.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.08);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+
+    .udid-text {
+      font-family: "SF Mono", "Menlo", monospace;
+      font-size: 10px;
+      color: #475569;
+      word-break: break-all;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.5s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* QR Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #12122a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 28px 24px;
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .modal-card .sub {
+      color: #64748b;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .qr-wrapper {
+      background: white;
+      border-radius: 16px;
+      padding: 12px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .qr-wrapper img {
+      width: 200px;
+      height: 200px;
+      display: block;
+    }
+
+    .modal-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #fbbf24;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+
+    .modal-status i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .btn-close-modal {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-close-modal:active {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Payment Method Picker */
+    .pm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 998;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .pm-overlay.show {
+      display: flex;
+    }
+
+    .pm-sheet {
+      background: #12122a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px 32px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .pm-sheet h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .pm-sheet .pm-sub {
+      color: #64748b;
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .pm-option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .pm-option:active {
+      transform: scale(0.98);
+    }
+
+    .pm-option:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.06);
+    }
+
+    .pm-option .pm-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pm-option .pm-icon i {
+      width: 22px;
+      height: 22px;
+    }
+
+    .pm-option .pm-info {
+      flex: 1;
+    }
+
+    .pm-option .pm-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .pm-option .pm-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .pm-option .pm-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon"><i data-lucide="zap"></i></div>
+      <h1>Settings</h1>
+      <span class="ver" id="versionText">v1.0.0</span>
+    </div>
+
+    <!-- License Status -->
+    <div class="card">
+      <div class="card-header">
+        <i data-lucide="shield-check"></i>
+        <span class="card-title">License</span>
+        <span class="badge badge-premium" id="licenseBadge" style="margin-left: auto">PREMIUM</span>
+      </div>
+      <div class="license-row">
+        <span class="label"><i data-lucide="crown"></i> Plan</span>
+        <span class="value" id="planText" style="color:#34d399">Premium (Unlimited)</span>
+      </div>
+      <div class="license-row">
+        <span class="label"><i data-lucide="calendar"></i> Expires</span>
+        <span class="value" id="expiresText">Lifetime</span>
+      </div>
+      <div class="license-row">
+        <span class="label"><i data-lucide="clock"></i> Days Left</span>
+        <span class="value" id="daysText" style="color:#34d399">∞</span>
+      </div>
+    </div>
+
+    <!-- Activate Key: removed -->
+    <div id="activateCard" style="display: none;">
+      <div class="card-header">
+        <i data-lucide="key-round"></i>
+        <span class="card-title">Activate License Key</span>
+      </div>
+      <div class="key-group">
+        <input type="text" class="key-input" id="keyInput" placeholder="IOSC-XXXX-XXXX-XXXX" autocomplete="off"
+          spellcheck="false" />
+        <button class="btn btn-primary" id="activateBtn" onclick="activateKey()">
+          <i data-lucide="check"></i> Activate
+        </button>
+      </div>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+
+
+    <!-- Device Info -->
+    <div class="card">
+      <div class="card-header">
+        <i data-lucide="smartphone"></i>
+        <span class="card-title">Device</span>
+      </div>
+      <div class="license-row">
+        <span class="label"><i data-lucide="fingerprint"></i> UDID</span>
+        <span class="value udid-text" id="udidText">Loading...</span>
+      </div>
+      <div class="license-row">
+        <span class="label"><i data-lucide="tag"></i> Version</span>
+        <span class="value" id="appVersion">1.0.0</span>
+      </div>
+      <div class="license-row">
+        <span class="label"><i data-lucide="refresh-cw"></i> Update</span>
+        <span class="value" id="updateStatus">Checking...</span>
+      </div>
+    </div>
+  </div>
+  <!-- /container -->
+
+  <script>
+    const BASE = window.location.origin;
+
+    // ── Load Device Info ──
+    async function loadDeviceInfo() {
+      try {
+        const r = await fetch(BASE + "/api/license");
+        const data = await r.json();
+        // Only update UDID display
+        if (data.udid) {
+          const udidEl = document.getElementById('udidText');
+          if (udidEl) udidEl.textContent = data.udid;
+        }
+      } catch (e) { }
+    }
+    // Init
+    loadDeviceInfo();
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>

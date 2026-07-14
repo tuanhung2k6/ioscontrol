@@ -1,0 +1,31 @@
+#!/bin/bash
+# Backup ALL non-IOSControl files in DynamicLibraries before dpkg replaces them
+DYLIB_DIR="/var/jb/Library/MobileSubstrate/DynamicLibraries"
+BACKUP_DIR="/var/tmp/ioscontrol_dylib_backup"
+
+rm -rf "$BACKUP_DIR"
+mkdir -p "$BACKUP_DIR"
+
+# Our files — don't need backup (will be replaced by package)
+OUR_FILES="IOSControl.dylib IOSControl.plist IOSControlSpoof.dylib IOSControlSpoof.plist ICSpoof.dylib ICSafari.dylib ICSafari.plist ICWebKitBridge.dylib ICWebKitBridge.plist"
+
+if [ -d "$DYLIB_DIR" ]; then
+    for f in "$DYLIB_DIR"/*; do
+        fname=$(basename "$f")
+        is_ours=0
+        for our in $OUR_FILES; do
+            [ "$fname" = "$our" ] && is_ours=1 && break
+        done
+        if [ $is_ours -eq 0 ]; then
+            cp -f "$f" "$BACKUP_DIR/" 2>/dev/null
+        fi
+    done
+    BACKED=$(ls "$BACKUP_DIR" 2>/dev/null | wc -l | tr -d ' ')
+    echo "📦 Backed up $BACKED non-IOSControl files from DynamicLibraries"
+fi
+
+# Also backup ICSpoof.plist filter (dynamic config)
+PLIST="$DYLIB_DIR/ICSpoof.plist"
+[ -f "$PLIST" ] && cp -f "$PLIST" "/var/tmp/icspoof_filter_backup.plist"
+
+exit 0

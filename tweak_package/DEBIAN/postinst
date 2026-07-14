@@ -1,0 +1,63 @@
+#!/bin/bash
+# IOSControl post-install script
+# Runs after dpkg installs the package (Sileo, Zebra, etc.)
+
+if [ "$1" = "configure" ] || [ "$1" = "" ]; then
+    # Restore non-IOSControl dylibs/plists backed up by preinst
+    BACKUP_DIR="/var/tmp/ioscontrol_dylib_backup"
+    DYLIB_DIR="/var/jb/Library/MobileSubstrate/DynamicLibraries"
+    if [ -d "$BACKUP_DIR" ] && [ "$(ls -A "$BACKUP_DIR" 2>/dev/null)" ]; then
+        cp -f "$BACKUP_DIR"/* "$DYLIB_DIR/" 2>/dev/null
+        RESTORED=$(ls "$BACKUP_DIR" | wc -l | tr -d ' ')
+        echo "📦 Restored $RESTORED non-IOSControl files to DynamicLibraries"
+        rm -rf "$BACKUP_DIR"
+    fi
+
+    # Restore ICSpoof.plist filter (dynamic config)
+    PLIST_BACKUP="/var/tmp/icspoof_filter_backup.plist"
+    [ -f "$PLIST_BACKUP" ] && cp -f "$PLIST_BACKUP" "$DYLIB_DIR/ICSpoof.plist" && rm -f "$PLIST_BACKUP"
+
+    # Create required directories
+    mkdir -p /var/jb/var/mobile/Library/IOSControl/Scripts 2>/dev/null || true
+    mkdir -p /var/jb/var/mobile/Library/IOSControl/images 2>/dev/null || true
+    mkdir -p /var/jb/var/mobile/Library/IOSControl/Recordings 2>/dev/null || true
+    chown -R mobile:mobile /var/jb/var/mobile/Library/IOSControl 2>/dev/null || true
+
+    # Mirror ICWebKitBridge into ElleKit TweakInject for SafariViewService.
+    # Some rootless devices load platform-service tweaks from this path, not DynamicLibraries.
+    TWEAKINJECT_DIR="/var/jb/usr/lib/TweakInject"
+    mkdir -p "$TWEAKINJECT_DIR" 2>/dev/null || true
+    if [ -f "$DYLIB_DIR/ICWebKitBridge.dylib" ]; then
+        cp -f "$DYLIB_DIR/ICWebKitBridge.dylib" "$TWEAKINJECT_DIR/ICWebKitBridge.dylib" 2>/dev/null || true
+        cp -f "$DYLIB_DIR/ICWebKitBridge.plist" "$TWEAKINJECT_DIR/ICWebKitBridge.plist" 2>/dev/null || true
+        chmod 755 "$TWEAKINJECT_DIR/ICWebKitBridge.dylib" 2>/dev/null || true
+        chmod 644 "$TWEAKINJECT_DIR/ICWebKitBridge.plist" 2>/dev/null || true
+    fi
+
+    # Set proxy_watcher script executable + load daemon
+    chmod +x /var/jb/usr/local/bin/proxy_watcher.sh 2>/dev/null || true
+    PROXY_PLIST="/var/jb/Library/LaunchDaemons/com.trieudz.proxy-watcher.plist"
+    launchctl bootout system "$PROXY_PLIST" 2>/dev/null || true
+    launchctl bootstrap system "$PROXY_PLIST" 2>/dev/null || \
+    launchctl load "$PROXY_PLIST" 2>/dev/null || true
+
+    # Register app icon on Home Screen
+    uicache -p /var/jb/Applications/iControlApp.app 2>/dev/null || true
+
+    # Load TrollVNC LaunchDaemon (start VNC server immediately)
+    PLIST="/var/jb/Library/LaunchDaemons/com.82flex.trollvnc.plist"
+    if [ -f "$PLIST" ]; then
+        # Stop if already running
+        launchctl bootout system "$PLIST" 2>/dev/null || true
+        launchctl unload "$PLIST" 2>/dev/null || true
+        sleep 1
+        # Start VNC daemon
+        launchctl bootstrap system "$PLIST" 2>/dev/null || \
+        launchctl load "$PLIST" 2>/dev/null || true
+    fi
+
+    # Restart SpringBoard to load the tweak
+    killall -9 SpringBoard 2>/dev/null || true
+fi
+
+exit 0

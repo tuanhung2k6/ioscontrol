@@ -1,0 +1,13 @@
+Package: com.tuanhungdz.ioscontrol
+Name: IOSControl
+Description: AutoTouch-like automation tweak for iOS (touch, screenshot, OCR, Lua scripting)
+Maintainer: tuanhung
+Author: tuanhung
+Section: Tweaks
+Depends: mobilesubstrate, firmware (>= 15.0)
+Architecture: iphoneos-arm64
+Version: 1.1.1
+Installed-Size: 24744
+Conflicts: com.trieudz.ioscontrol
+Replaces: com.trieudz.ioscontrol
+
