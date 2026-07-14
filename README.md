@@ -13,6 +13,10 @@ ioscontrol_custom_project/
 ├── make_sileo_repo.py      # Script đồng bộ dữ liệu vào sileo_repo
 ├── build/                  # Thư mục chứa file build .deb đầu ra (tự động tạo, bị Git bỏ qua)
 ├── tweak_package/          # Toàn bộ cấu trúc Tweak (DEBIAN, App iOS, dylibs, plist, ...)
+├── custom_ios_app/         # Mã nguồn dự án iOS App thay thế (Swift/WebKit)
+│   ├── Info.plist          # File cấu hình (đã bật quyền tải HTTP localhost)
+│   ├── WebViewController.swift   # WKWebView load local IDE
+│   └── MainTabBarController.swift # Thanh điều khiển TabBar dưới chân app
 ├── static/                 # Giao diện Web IDE tĩnh đã được tối ưu hóa hiển thị Premium
 │   ├── index.html
 │   ├── settings.html
@@ -165,4 +169,39 @@ git add .
 git commit -m "Update tweak in sileo repo"
 git push
 ```
+
+---
+
+## 🛠 Hướng dẫn Tự Biên dịch App iOS mới thay thế (`iControlApp`)
+
+Thư mục `custom_ios_app/` cung cấp mã nguồn Swift đầy đủ để bạn tự biên dịch một ứng dụng khách thay thế bằng Xcode:
+
+### 1. Thiết lập dự án trên Xcode (macOS)
+1. Mở Xcode trên máy Mac, tạo một dự án mới: **File -> New -> Project -> iOS App**.
+2. Chọn **Storyboard** (hoặc programmatic UIKit) và ngôn ngữ **Swift**. Đặt tên dự án là **`iControlApp`** và bundle ID là **`com.tuanhungdz.ioscontrol`**.
+3. Kéo thả 2 file Swift: `WebViewController.swift` và `MainTabBarController.swift` từ thư mục `custom_ios_app/` vào thư mục dự án Xcode của bạn.
+4. Mở file `AppDelegate.swift` hoặc `SceneDelegate.swift`, tìm đến hàm khởi tạo cửa sổ chính và gán view controller chính thành `MainTabBarController`:
+   ```swift
+   // Trong SceneDelegate.swift
+   func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+       guard let windowScene = (scene as? UIWindowScene) else { return }
+       let window = UIWindow(windowScene: windowScene)
+       window.rootViewController = MainTabBarController()
+       window.makeKeyAndVisible()
+       self.window = window
+   }
+   ```
+5. Thay thế hoặc cấu hình các key trong tệp `Info.plist` của bạn tương tự như file `custom_ios_app/Info.plist`. Chú ý phần **`NSAppTransportSecurity`** cực kỳ quan trọng để cho phép tải kết nối HTTP không mã hóa tới địa chỉ localhost:
+   ```xml
+   <key>NSAppTransportSecurity</key>
+   <dict>
+       <key>NSAllowsArbitraryLoads</key>
+       <true/>
+   </dict>
+   ```
+
+### 2. Biên dịch và Đóng gói
+*   Bạn có thể chạy thử trực tiếp trên thiết bị iOS (đã jailbreak hoặc đăng ký profile nhà phát triển) hoặc Simulator.
+*   Biên dịch và xuất bản dự án thành tệp `.app` rồi chép đè vào thư mục `/var/jb/Applications/iControlApp.app/` của điện thoại để thay thế ứng dụng cũ hoàn toàn!
+
 
