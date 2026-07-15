@@ -53,6 +53,9 @@ def patch_all():
     # b'\xe2\xe1\x84\x52' is MOVZ w2, #0x270f (9999)
     # b'\x42\xd5\x84\x52' is MOVZ w2, #0x26aa (9898)
     patch_file(dylib_path, b"\xe2\xe1\x84\x52", b"\x42\xd5\x84\x52")
+    
+    # Patch HTTPS verification domain to HTTP to bypass SSL validation
+    patch_file(dylib_path, b"https://ioscontrol.com/version.json", b"http://ioscontrol.com/version.json\x00")
 
     # 3. Patch docs-data.js guide documentation
     docs_js_path = os.path.join("var", "jb", "usr", "local", "share", "ioscontrol", "static", "docs-data.js")
