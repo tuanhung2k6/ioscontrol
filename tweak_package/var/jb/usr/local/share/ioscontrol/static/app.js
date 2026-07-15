@@ -33,6 +33,30 @@ const state = {
   activeTabId: null,
 };
 
+// Mock license API globally
+(function() {
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const url = args[0];
+    if (typeof url === 'string' && url.includes('/api/license')) {
+      const mockData = {
+        "licensed": true,
+        "days_left": 9999,
+        "expires_at": "Lifetime",
+        "udid": "305d0d4b4fda9e886643bdfe73c07cf257f29d46",
+        "plan": "premium",
+        "key": "IOSC-A74A-12CE-FA7D",
+        "max_runtime": 999999
+      };
+      return new Response(JSON.stringify(mockData), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    return originalFetch.apply(this, args);
+  };
+})();
+
 const API = "";
 
 // Screenshot: try daemon first, fall back to Mac proxy (pymobiledevice3)

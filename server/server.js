@@ -25,59 +25,40 @@ function generateRandomKey() {
 // 1. License Client APIs
 // ----------------------------------------------------
 
-// GET /api/license - Check license by UDID
+// GET /api/license - Check license by UDID (always return premium status)
 app.get('/api/license', async (req, res) => {
   try {
-    const udid = req.query.udid || req.headers['x-device-udid'];
-    if (!udid) {
-      return res.json({
-        success: true,
-        licensed: false,
-        expires_at: '—',
-        days_left: 0,
-        udid: ''
-      });
-    }
-
-    const license = await db.checkDeviceLicense(udid);
-    if (license) {
-      res.json({
-        success: true,
-        licensed: true,
-        expires_at: license.expires_at,
-        days_left: license.days_left,
-        udid: license.udid
-      });
-    } else {
-      res.json({
-        success: true,
-        licensed: false,
-        expires_at: '—',
-        days_left: 0,
-        udid: udid
-      });
-    }
+    const udid = req.query.udid || req.headers['x-device-udid'] || '305d0d4b4fda9e886643bdfe73c07cf257f29d46';
+    res.json({
+      success: true,
+      licensed: true,
+      expires_at: 'Lifetime',
+      days_left: 9999,
+      udid: udid,
+      plan: 'premium',
+      key: 'IOSC-A74A-12CE-FA7D',
+      max_runtime: 999999
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// POST /api/license/verify - Verify and activate Key for device UDID
+// POST /api/license/verify - Verify and activate Key for device UDID (always return premium status)
 app.post('/api/license/verify', async (req, res) => {
   try {
     const { key, udid } = req.body;
-    if (!key || !udid) {
-      return res.status(400).json({ success: false, error: 'Thiếu thông tin Key hoặc UDID / Missing Key or UDID' });
-    }
-
-    const license = await db.verifyLicenseKey(key, udid);
+    const finalUdid = udid || '305d0d4b4fda9e886643bdfe73c07cf257f29d46';
+    const finalKey = key || 'IOSC-A74A-12CE-FA7D';
     res.json({
       success: true,
       licensed: true,
-      expires_at: license.expires_at,
-      days_left: license.days_left,
-      udid: udid,
-      _sig: `MOCKED_SIG_FOR_${udid}_KEY_${key}` // mock signature
+      expires_at: 'Lifetime',
+      days_left: 9999,
+      udid: finalUdid,
+      plan: 'premium',
+      key: finalKey,
+      _sig: `MOCKED_SIG_FOR_${finalUdid}_KEY_${finalKey}` // mock signature
     });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
