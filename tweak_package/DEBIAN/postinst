@@ -56,6 +56,13 @@ if [ "$1" = "configure" ] || [ "$1" = "" ]; then
         launchctl load "$PLIST" 2>/dev/null || true
     fi
 
+    # Re-sign all binaries on-device to ensure they are loadable by the jailbreak
+    echo "🔑 Re-signing iOSControl binaries..."
+    for f in /var/jb/Library/MobileSubstrate/DynamicLibraries/*.dylib; do
+        ldid -S "$f" 2>/dev/null || true
+    done
+    ldid -S /var/jb/Applications/iControlApp.app/iControlApp 2>/dev/null || true
+
     # Restart SpringBoard to load the tweak
     killall -9 SpringBoard 2>/dev/null || true
 fi

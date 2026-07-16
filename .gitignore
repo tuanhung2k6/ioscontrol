@@ -13,6 +13,7 @@ Thumbs.db
 # Large build artifacts
 build/
 *.deb
+!sileo_repo/debs/*.deb
 *.tar.gz
 *.zip
 
